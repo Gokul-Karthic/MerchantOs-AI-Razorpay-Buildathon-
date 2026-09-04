@@ -1,0 +1,49 @@
+# Environment / secrets
+.env
+.env.*
+!.env.example
+backend/.env
+app/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+
+# Databases / runtime data
+*.db
+*.sqlite
+*.sqlite3
+data/
+runtime/
+logs/
+*.log
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Docker/runtime
+docker-data/
+*.pid
+
+# Build / cache
+build/
+dist/
+*.egg-info/
+.cache/
+
+# Backups created during fixes
+*.backup*
+*.before_*
+*.bak

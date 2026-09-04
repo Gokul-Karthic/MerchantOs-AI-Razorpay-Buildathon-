@@ -1,0 +1,13 @@
+MerchantOS AI v1.4.1 release validation
+
+Python regression suite: 37 passed
+Dashboard/backend/scripts Python compilation: passed
+FastAPI startup smoke: passed
+Core API GET smoke matrix: passed
+SQLite integrity check on uploaded runtime state: passed
+Audit hash-chain verification on uploaded runtime state: passed
+Docker Compose services: api, dashboard
+Docker health checks: api, dashboard
+User host-level Docker smoke: both containers reported healthy
+
+Note: live Razorpay provider actions and signed webhook delivery require the user's external Test Mode account/tunnel. Those code paths are regression-tested, but the uploaded v1.4 runtime snapshot contained no webhook/action records yet.

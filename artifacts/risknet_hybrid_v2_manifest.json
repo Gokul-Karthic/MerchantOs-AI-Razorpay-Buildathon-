@@ -1,0 +1,121 @@
+{
+  "trained": true,
+  "active": true,
+  "model_version": "risknet-hybrid-v2",
+  "model_type": "hybrid_policy_bayesian_reputation_optional_logistic_calibrator",
+  "data_source": "razorpay_test_mode_only",
+  "label_source": "controlled_test_mode_experiments",
+  "locked": true,
+  "refit_policy": "disabled_by_default",
+  "no_additional_payments_required": true,
+  "review_threshold": 0.85,
+  "development_rows": 64,
+  "holdout_rows": 16,
+  "validation": {
+    "threshold": 0.64,
+    "precision": 0.625,
+    "recall": 0.6667,
+    "f1": 0.6452,
+    "confusion_matrix": [
+      [
+        27,
+        6
+      ],
+      [
+        5,
+        10
+      ]
+    ],
+    "prevalence_baseline_pr_auc": 0.3125,
+    "predicted_positive_rate": 0.3333,
+    "pr_auc": 0.6826,
+    "roc_auc": 0.7394,
+    "pr_auc_lift_vs_baseline": 2.1842
+  },
+  "test": {
+    "threshold": 0.64,
+    "precision": 0.6667,
+    "recall": 0.6667,
+    "f1": 0.6667,
+    "confusion_matrix": [
+      [
+        12,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "prevalence_baseline_pr_auc": 0.1875,
+    "predicted_positive_rate": 0.1875,
+    "pr_auc": 0.7556,
+    "roc_auc": 0.9231,
+    "pr_auc_lift_vs_baseline": 4.0296
+  },
+  "holdout": {
+    "threshold": 0.64,
+    "precision": 0.6667,
+    "recall": 0.6667,
+    "f1": 0.6667,
+    "confusion_matrix": [
+      [
+        12,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "prevalence_baseline_pr_auc": 0.1875,
+    "predicted_positive_rate": 0.1875,
+    "pr_auc": 0.7556,
+    "roc_auc": 0.9231,
+    "pr_auc_lift_vs_baseline": 4.0296
+  },
+  "learned_calibrator_active": true,
+  "learned_calibrator_quality_gate_passed": true,
+  "learned_calibrator_rejection_reasons": [],
+  "identity_quality": {
+    "labeled_events": 80,
+    "unique_customers": 26,
+    "unique_devices": 1,
+    "unique_ips": 1,
+    "known_instrument_events": 9,
+    "unique_known_instruments": 9,
+    "device_identity_reliable": false,
+    "ip_identity_reliable": false,
+    "device_features_allowed": false,
+    "ip_features_allowed": false,
+    "reason": "Device/IP graph evidence is used only when identity diversity is credible. Collapsed localhost/browser identities are automatically suppressed from learned scoring."
+  },
+  "readiness_at_training": {
+    "ready": true,
+    "checks": {
+      "test_mode_only": true,
+      "labeled_events_at_least_50": true,
+      "controlled_abuse_at_least_12": true,
+      "benign_at_least_25": true,
+      "payment_methods_at_least_2": true,
+      "customers_at_least_10": true,
+      "temporal_span_at_least_60m": true
+    },
+    "counts": {
+      "labeled": 80,
+      "controlled_abuse": 20,
+      "benign": 60,
+      "methods": 3,
+      "customers": 26,
+      "temporal_span_minutes": 930.0
+    },
+    "policy": "Only genuine Razorpay Test Mode events with controlled experiment labels may fit RiskNet."
+  },
+  "safety": {
+    "no_synthetic_rows": true,
+    "no_live_mode_rows": true,
+    "current_event_label_never_used_as_feature": true,
+    "collapsed_local_device_ip_suppressed_from_learned_model": true,
+    "action_execution_directly_from_model": false
+  }
+}
