@@ -1,177 +1,1036 @@
-# MerchantOS AI v1.4.1 — Reconciled Buildathon Final
 
-**MerchantOS AI is the AI decision layer for safe Razorpay merchant revenue recovery.**
+# MerchantOS AI
 
-`OBSERVE → UNDERSTAND → SIMULATE → DECIDE → GUARD → ACT → VERIFY → LEARN`
+### AI Decision Layer for Autonomous Merchant Operations
 
-v1.4.1 keeps the finalized `risknet-hybrid-v2` architecture and adds two product-maturity features:
+![Python](https://img.shields.io/badge/Python-3.11+-blue)
+![FastAPI](https://img.shields.io/badge/Backend-FastAPI-green)
+![Streamlit](https://img.shields.io/badge/Dashboard-Streamlit-red)
+![Docker](https://img.shields.io/badge/Deployment-Docker-blue)
+![Razorpay](https://img.shields.io/badge/Payments-Razorpay_Test_Mode-0C2451)
+![Status](https://img.shields.io/badge/Buildathon-READY-brightgreen)
 
-1. **Live Payment Journey / Decision Trace** — create a genuine Razorpay Test Mode order from MerchantOS and follow one payment from creation through provider events, RiskNet, PayGuard, Digital Twin, Decision Agent, Guardrails, recovery action, verification, learning, and audit.
-2. **Dockerized runtime** — FastAPI and Streamlit run as a reproducible two-service stack with persistent SQLite/model storage and health checks.
+**MerchantOS AI** is an agentic payment-operations and revenue-recovery system built for the **Razorpay Buildathon**.
 
-## Non-negotiable safety policy
+It helps merchants understand failed payments, identify payment-route problems, evaluate risk, simulate recovery strategies, choose the safest action, execute bounded Razorpay Test Mode actions, verify the actual result, and maintain a complete audit trail.
 
-- Razorpay **Test Mode only** (`rzp_test_...`).
-- Live Mode keys are refused.
-- Live Payment Journey creates **real Razorpay Test Mode orders/payments**, not synthetic payment rows.
-- Live journeys are always `UNLABELED`; experiment labels cannot be supplied to the live journey workflow.
-- Synthetic artifacts are forbidden as active RiskNet inputs.
-- RiskNet cannot execute provider actions directly.
-- Provider execution is limited to guarded Razorpay Test Mode Payment Links.
-- The locked RiskNet artifact does **not** silently retrain when `MERCHANTOS_ALLOW_MODEL_REFIT=false`.
+> **AI reasons. Guardrails decide whether it is safe to act. Razorpay confirms what actually happened.**
 
-## Live Payment Journey
+---
 
-Open **Live Payment Journey** in the dashboard. The flow is:
+## Problem
 
-1. Enter an amount and optional customer reference.
-2. MerchantOS calls Razorpay Test Mode and creates a real order.
-3. Open the MerchantOS-hosted Razorpay Test Checkout.
-4. Complete or fail the Test Mode payment.
-5. Signed webhooks remain the primary observation; **Refresh from Razorpay** is API verification/backfill.
-6. If the payment failed, click **Analyze & decide**. MerchantOS shows RiskNet, PayGuard, Digital Twin options, Decision Agent recommendation, and Guardrail result.
-7. If Test actions are enabled and the case is eligible, **Analyze + bounded Test action** may create a Razorpay Test Mode Payment Link.
-8. Complete the recovery link and click **Verify recovery** if needed.
-9. The same page displays the complete payment lifetime and audit-backed decision trace.
+A failed payment does not always mean that the customer should simply retry.
 
-No training label is used in this workflow.
+The actual issue may be:
 
-## Upgrade from your working v1.3.2
+- Customer or transaction risk
+- A degraded bank route
+- Payment-method issues
+- Temporary provider failure
+- A recovery action with poor expected value
 
-After extracting v1.4.1:
+MerchantOS AI treats payment recovery as a **decision problem**, not just a retry problem.
 
-```bash
-cd ~/Downloads/MerchantOS_AI_v1.4.1_ReconciledBuildathonFinal
-bash scripts/migrate_from_previous.sh ../MerchantOS_AI_v1.3.2_AlwaysVisibleSidebar
+---
+
+## Core MerchantOS Loop
+
+```text
+OBSERVE
+   ↓
+UNDERSTAND
+   ↓
+SIMULATE
+   ↓
+DECIDE
+   ↓
+GUARD
+   ↓
+ACT
+   ↓
+VERIFY
+   ↓
+LEARN
+
+AUDIT runs across the complete lifecycle
+````
+
+### Complete Decision Flow
+
+```text
+Payment Failure
+      ↓
+RiskNet
+      ↓
+PayGuard
+      ↓
+Digital Twin
+      ↓
+Decision Agent
+      ↓
+Deterministic Guardrails
+      ↓
+Automatic Test Action
+        OR
+Human Approval
+      ↓
+Razorpay Verification
+      ↓
+Learning + Audit
 ```
 
-This copies your `.env`, current `merchantos.db`, and locked RiskNet artifact. It does **not** retrain the model.
+---
 
+## Main Features
 
-## One-command reconciliation check
+| Component                   | Purpose                                          |
+| --------------------------- | ------------------------------------------------ |
+| **Overview**                | Merchant operations control room                 |
+| **Live Payment Journey**    | Genuine Razorpay Test Mode payment flow          |
+| **Payments**                | Payment evidence and transaction activity        |
+| **RiskNet**                 | Hybrid transaction and customer risk assessment  |
+| **PayGuard**                | Detect payment-method and bank-route degradation |
+| **Digital Twin**            | Simulate recovery interventions                  |
+| **Decision Agent**          | Choose the best recovery strategy                |
+| **Guardrails**              | Deterministic financial safety controls          |
+| **Safe Simulation**         | Generate decisions without provider execution    |
+| **Bounded Test Mode Cycle** | Execute safe Razorpay Payment Link actions       |
+| **Human Approval**          | Review sensitive or higher-value actions         |
+| **Verify Pending Actions**  | Confirm provider-side recovery status            |
+| **Learning & Outcomes**     | Compare expected vs actual recovery              |
+| **Audit & Safety**          | Full traceability and system controls            |
 
-After migrating your local state, run:
+---
 
-```bash
-python3 scripts/system_check.py
+## 1. Executive Overview
+
+The Overview page acts as the MerchantOS control room.
+
+It provides a quick view of:
+
+* Payment activity
+* Failed payments
+* Recovery decisions
+* Provider actions
+* Verified recoveries
+* Revenue at risk
+* Payment health
+* Risk state
+* Approval activity
+* System safety status
+
+---
+
+## 2. Live Payment Journey
+
+MerchantOS AI works with **genuine Razorpay Test Mode transactions**.
+
+A payment journey can be created through the application and completed using Razorpay checkout.
+
+For a successful payment:
+
+```text
+Payment Successful
+        ↓
+No Recovery Required
 ```
 
-It checks the runtime DB, locked RiskNet artifact, Test Mode configuration, audit-chain validity, and reports advisory gaps such as no webhook/action evidence yet.
+For a failed payment:
 
-**Submission safety:** this clean archive intentionally does not contain `.env`, `merchantos.db`, or `runtime/`. Keep those local.
-
-## Recommended: Docker startup
-
-Docker Desktop is the only runtime prerequisite.
-
-```bash
-cd ~/Downloads/MerchantOS_AI_v1.4.1_ReconciledBuildathonFinal
-bash scripts/prepare_docker_runtime.sh
-docker compose up --build -d
+```text
+Payment Failed
+      ↓
+Recovery Analysis Begins
 ```
 
-Then open:
+MerchantOS can also refresh the latest provider state directly from Razorpay.
 
-- Dashboard: `http://localhost:8501`
-- API docs: `http://localhost:8000/docs`
-- Health: `http://localhost:8000/api/health`
+This prevents unnecessary recovery actions on already successful payments.
 
-Useful commands:
+---
+
+## 3. Payments Intelligence
+
+The Payments section provides the operational evidence used by MerchantOS AI.
+
+It tracks:
+
+* Amount
+* Currency
+* Payment method
+* Bank
+* Payment state
+* Provider state
+* Razorpay Payment ID
+* Timestamp
+* Success / Failure
+
+Payments can be filtered to investigate failed transactions or payment-route issues.
+
+---
+
+## 4. RiskNet
+
+### Hybrid Payment Risk Engine
+
+RiskNet evaluates the risk associated with a payment before MerchantOS allows recovery actions.
+
+It combines:
+
+```text
+Policy Signals
+      +
+Bayesian / Reputation Evidence
+      +
+Behavioral Features
+      +
+Identity Quality
+      +
+Optional Learned Calibration
+```
+
+Production model:
+
+```text
+risknet-hybrid-v2
+```
+
+Model type:
+
+```text
+hybrid_policy_bayesian_reputation_optional_logistic_calibrator
+```
+
+### Risk Behavior
+
+Low-risk payments can continue through the recovery workflow.
+
+Higher-risk payments may require:
+
+```text
+Review
+   OR
+Approval
+   OR
+Block
+```
+
+RiskNet itself **cannot directly execute Razorpay actions**.
+
+It only provides risk evidence to the decision layer.
+
+---
+
+## RiskNet Model Performance
+
+Final holdout metrics:
+
+| Metric    | Result |
+| --------- | -----: |
+| Precision | 0.6667 |
+| Recall    | 0.6667 |
+| F1 Score  | 0.6667 |
+| PR-AUC    | 0.7556 |
+| ROC-AUC   | 0.9231 |
+| Lift      | 4.0296 |
+
+The locked RiskNet model was trained using:
+
+```text
+80 labeled genuine Razorpay Test Mode payments
+
+20 controlled abuse cases
+60 benign cases
+3 payment methods
+26 customer identities
+```
+
+No Live Mode rows were used.
+
+No synthetic transaction rows were used in the final model dataset.
+
+---
+
+## 5. PayGuard
+
+### Payment Route Health Intelligence
+
+RiskNet asks:
+
+> Is this transaction risky?
+
+PayGuard asks:
+
+> Is the payment route itself experiencing a problem?
+
+PayGuard monitors:
+
+* Recent payments
+* Recent failures
+* Failure rate
+* Historical baseline
+* Route degradation
+* Incident severity
+* Revenue at risk
+
+### Example PayGuard Incident
+
+```text
+Recent payments: 3
+Failures: 3
+Recent failure rate: 100%
+```
+
+MerchantOS can identify that the payment route itself may be degraded.
+
+This helps prevent the system from blindly recommending the same route again.
+
+---
+
+## 6. Digital Twin
+
+Before MerchantOS performs an action, the **Digital Twin** simulates possible recovery strategies.
+
+Possible interventions include:
+
+```text
+WAIT
+
+RETRY
+
+ALTERNATE PAYMENT METHOD
+
+RAZORPAY PAYMENT LINK
+```
+
+For each strategy, it evaluates:
+
+* Recovery probability
+* Expected recovery value
+* Cost
+* Risk
+* Payment-route health
+
+MerchantOS then recommends the best expected recovery strategy.
+
+> MerchantOS is **not hard-coded to always create a Payment Link**.
+
+---
+
+## 7. Decision Agent
+
+The Decision Agent combines information from:
+
+```text
+RiskNet
++
+PayGuard
++
+Digital Twin
++
+Payment State
++
+Business Policy
+```
+
+It selects a recommended recovery strategy.
+
+However, the AI does not have unrestricted financial authority.
+
+Every decision must pass through MerchantOS Guardrails.
+
+---
+
+## 8. Deterministic Guardrails
+
+Guardrails form the financial safety layer of MerchantOS AI.
+
+They evaluate:
+
+* Payment amount
+* Risk score
+* Confidence
+* Recommended action
+* Autonomy limits
+* Approval requirement
+* Provider action type
+* Razorpay Test Mode status
+
+Possible outcomes:
+
+```text
+AUTO_ALLOWED_TEST
+
+APPROVAL_REQUIRED
+
+SIMULATION_ONLY
+
+BLOCKED
+```
+
+The AI can recommend an action.
+
+The Guardrails decide whether the system is allowed to execute it.
+
+---
+
+## 9. Safe Simulation
+
+MerchantOS includes a **Safe Simulation** mode.
+
+This runs the intelligence pipeline without performing a real provider action.
+
+```text
+Analyze Payment
+      ↓
+Run RiskNet
+      ↓
+Check PayGuard
+      ↓
+Run Digital Twin
+      ↓
+Create Decision
+      ↓
+Apply Guardrails
+```
+
+No Razorpay Payment Link is created during Safe Simulation.
+
+---
+
+## 10. Decision Queue
+
+The Decisions & Actions section provides visibility into MerchantOS recommendations.
+
+For each case the merchant can inspect:
+
+* Recommended action
+* Risk
+* Confidence
+* Guardrail result
+* Action state
+* Approval state
+* Provider result
+
+This makes agent decisions visible instead of hiding them inside a black box.
+
+---
+
+## 11. Bounded Razorpay Test Mode Execution
+
+MerchantOS currently allows one real provider-side action:
+
+> **Razorpay Test Mode Payment Link creation**
+
+The action can only happen when:
+
+```text
+Payment Failed
+      ↓
+Payment Link Recommended
+      ↓
+Risk Acceptable
+      ↓
+Guardrails Allow Execution
+      ↓
+Approval Not Required
+      ↓
+Create Razorpay Test Mode Payment Link
+```
+
+Other interventions such as retry, wait, or alternate payment method remain simulation recommendations.
+
+---
+
+## 12. Provider Action Idempotency
+
+MerchantOS protects against duplicate Payment Link execution using:
+
+```text
+Existing Action Detection
++
+Event-Level Checks
++
+Atomic Provider Action Lock
+```
+
+Historical actions are preserved for audit purposes.
+
+---
+
+## 13. Human Approval
+
+MerchantOS supports **human-in-the-loop financial automation**.
+
+For higher-value or higher-risk cases:
+
+```text
+Decision
+   ↓
+Guardrails
+   ↓
+APPROVAL_REQUIRED
+   ↓
+Merchant Review
+   ↓
+Approve / Reject
+```
+
+This allows important financial actions to remain under human control.
+
+---
+
+## 14. Verify Pending Actions
+
+MerchantOS checks Razorpay to verify the actual provider result.
+
+Possible states include:
+
+```text
+PENDING
+
+FAILED
+
+PARTIALLY PAID
+
+RECOVERED
+```
+
+This closes the decision loop:
+
+```text
+DECIDE
+  ↓
+ACT
+  ↓
+VERIFY
+```
+
+---
+
+## Proven End-to-End Recovery
+
+MerchantOS successfully demonstrated a complete recovery flow:
+
+```text
+Failed Payment
+      ↓
+RiskNet
+      ↓
+PayGuard
+      ↓
+Digital Twin
+      ↓
+Decision Agent
+      ↓
+Guardrails
+      ↓
+Razorpay Test Mode Payment Link
+      ↓
+Customer Completes Payment
+      ↓
+Razorpay Verification
+      ↓
+VERIFIED_RECOVERED
+```
+
+Example:
+
+```text
+Payment amount: ₹499
+
+Expected recovery value:
+₹155.47
+
+Actual recovered amount:
+₹499
+
+Final state:
+VERIFIED_RECOVERED
+```
+
+---
+
+## 15. Learning & Outcomes
+
+MerchantOS records:
+
+```text
+What the system expected
+```
+
+and compares it with:
+
+```text
+What actually happened
+```
+
+The system tracks:
+
+* Decisions
+* Provider actions
+* Successful recoveries
+* Expected recovery value
+* Actual recovered revenue
+* Realized vs expected performance
+
+Operational outcomes are recorded without automatically retraining the locked RiskNet model.
+
+---
+
+## 16. Audit & Safety
+
+Every important stage of the MerchantOS workflow is auditable.
+
+Examples include:
+
+* Payment Event
+* Risk Assessment
+* PayGuard Evidence
+* Digital Twin Simulation
+* Decision
+* Guardrail Result
+* Approval
+* Provider Action
+* Verification
+* Learning Outcome
+
+---
+
+## Safety Architecture
+
+MerchantOS was intentionally designed with strict financial safety controls.
+
+```text
+✓ Razorpay Test Mode only
+
+✓ Live Mode execution blocked
+
+✓ No fake payment injection for operational flows
+
+✓ No LLM-generated financial evidence
+
+✓ Deterministic financial calculations
+
+✓ Deterministic Guardrails
+
+✓ RiskNet cannot directly execute actions
+
+✓ Human approval supported
+
+✓ Provider action idempotency
+
+✓ Automatic model retraining disabled
+
+✓ Every important action is auditable
+```
+
+---
+
+## Dashboard Modules
+
+MerchantOS AI contains nine major sections:
+
+```text
+Overview
+
+Live Payment Journey
+
+Payments
+
+Risk & Trust
+
+Payment Health
+
+Digital Twin
+
+Decisions & Actions
+
+Learning & Outcomes
+
+Audit & Safety
+```
+
+Together they represent one connected merchant decision workflow.
+
+---
+
+## System Architecture
+
+```text
+                    ┌───────────────────────┐
+                    │ Razorpay Test Mode    │
+                    │ Checkout + Webhooks   │
+                    └───────────┬───────────┘
+                                │
+                                ▼
+                    ┌───────────────────────┐
+                    │ Payment Ingestion     │
+                    │ + Journey Tracking    │
+                    └───────────┬───────────┘
+                                │
+                  ┌─────────────┴─────────────┐
+                  │                           │
+                  ▼                           ▼
+         ┌─────────────────┐         ┌─────────────────┐
+         │     RiskNet     │         │    PayGuard     │
+         │   Risk Engine   │         │  Route Health   │
+         └────────┬────────┘         └────────┬────────┘
+                  │                           │
+                  └─────────────┬─────────────┘
+                                ▼
+                      ┌─────────────────┐
+                      │  Digital Twin   │
+                      │   Simulation    │
+                      └────────┬────────┘
+                               ▼
+                      ┌─────────────────┐
+                      │ Decision Agent  │
+                      └────────┬────────┘
+                               ▼
+                      ┌─────────────────┐
+                      │   Guardrails    │
+                      └────────┬────────┘
+                               │
+                  ┌────────────┴────────────┐
+                  │                         │
+                  ▼                         ▼
+        ┌───────────────────┐     ┌───────────────────┐
+        │ AUTO_ALLOWED_TEST │     │ APPROVAL_REQUIRED │
+        └─────────┬─────────┘     └─────────┬─────────┘
+                  │                         │
+                  └────────────┬────────────┘
+                               ▼
+                    ┌────────────────────┐
+                    │ Razorpay Test Mode │
+                    │   Payment Link     │
+                    └─────────┬──────────┘
+                              ▼
+                    ┌────────────────────┐
+                    │      Verify        │
+                    │ Provider Outcome   │
+                    └─────────┬──────────┘
+                              ▼
+                    ┌────────────────────┐
+                    │ Learning & Audit   │
+                    └────────────────────┘
+```
+
+---
+
+## Tech Stack
+
+| Component            | Technology                                     |
+| -------------------- | ---------------------------------------------- |
+| Programming Language | Python                                         |
+| Backend              | FastAPI                                        |
+| Dashboard            | Streamlit                                      |
+| Machine Learning     | scikit-learn                                   |
+| Risk Model           | Hybrid Policy + Bayesian + Learned Calibration |
+| Database             | SQLite                                         |
+| Payment Provider     | Razorpay Test Mode                             |
+| API Documentation    | Swagger / OpenAPI                              |
+| Containerization     | Docker                                         |
+| Orchestration        | Docker Compose                                 |
+| Testing              | pytest                                         |
+| Local Webhooks       | Cloudflare Tunnel                              |
+
+---
+
+## Project Structure
+
+```text
+MerchantOS_AI/
+│
+├── app/
+│   ├── agents/
+│   │   └── decision_agent.py
+│   ├── api/
+│   │   └── routes.py
+│   ├── ml/
+│   │   ├── digital_twin.py
+│   │   ├── payguard.py
+│   │   ├── revenue.py
+│   │   ├── risk_engine.py
+│   │   ├── risk_graph.py
+│   │   ├── risk_graph_features.py
+│   │   ├── risk_hybrid_features.py
+│   │   └── risk_model.py
+│   ├── services/
+│   │   ├── actions.py
+│   │   ├── guardrails.py
+│   │   ├── journeys.py
+│   │   ├── learning.py
+│   │   ├── orchestrator.py
+│   │   ├── privacy.py
+│   │   ├── razorpay_client.py
+│   │   ├── razorpay_ingestion.py
+│   │   └── store.py
+│   ├── dashboard.py
+│   └── main.py
+│
+├── artifacts/
+│   ├── risknet_hybrid_v2.joblib
+│   └── risknet_hybrid_v2_manifest.json
+│
+├── scripts/
+├── tests/
+├── ARCHITECTURE.md
+├── MODEL_CARD.md
+├── DEMO_RUNBOOK.md
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+└── README.md
+```
+
+---
+
+## Installation
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/Gokul-Karthic/MerchantOs-AI-Razorpay-Buildathon-.git
+```
+
+```bash
+cd MerchantOs-AI-Razorpay-Buildathon-
+```
+
+---
+
+## Environment Configuration
+
+Create your `.env` file:
+
+```bash
+cp .env.example .env
+```
+
+Configure your own Razorpay Test Mode credentials.
+
+```env
+RAZORPAY_KEY_ID=your_test_key_id
+RAZORPAY_KEY_SECRET=your_test_key_secret
+RAZORPAY_WEBHOOK_SECRET=your_webhook_secret
+
+MERCHANTOS_HASH_SALT=your_private_stable_salt
+MERCHANTOS_ALLOW_MODEL_REFIT=false
+```
+
+> Never commit real `.env` credentials to GitHub.
+
+---
+
+## Run With Docker
+
+```bash
+docker compose up -d --build
+```
+
+Check containers:
 
 ```bash
 docker compose ps
-docker compose logs -f --tail=100
-docker compose down
 ```
 
-Or with `make`:
+---
 
-```bash
-make docker-up
-make docker-status
-make docker-logs
-make docker-down
-```
+## Open MerchantOS
 
-The API and dashboard are separate containers. The dashboard talks to the API over the internal Docker network, while browser-facing checkout links use `http://localhost:8000`.
-
-### Docker persistence
-
-`bash scripts/prepare_docker_runtime.sh` creates:
+### Dashboard
 
 ```text
-runtime/
-├── merchantos.db
-└── artifacts/
-    ├── risknet_hybrid_v2.joblib
-    └── risknet_hybrid_v2_manifest.json
+http://localhost:8501
 ```
 
-`runtime/` is bind-mounted into the API container and is gitignored. Rebuilding the Docker image does not erase your payment history or locked model.
+### Swagger API
 
-## Local Python startup (optional)
+```text
+http://localhost:8000/docs
+```
 
-If you do not use Docker:
+### Health Check
+
+```text
+http://localhost:8000/health
+```
+
+---
+
+## Razorpay Webhooks
+
+For local development:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-pytest -q
-python -m uvicorn app.main:app --reload
+cloudflared tunnel --url http://localhost:8000
 ```
 
-Second terminal:
+Webhook endpoint:
 
-```bash
-source .venv/bin/activate
-python -m streamlit run app/dashboard.py
+```text
+/api/razorpay/webhook
 ```
 
-## Environment
+Example:
 
-Copy `.env.example` to `.env` and configure your **Razorpay Test Mode** credentials and webhook secret. Never commit `.env`.
-
-Important settings:
-
-```env
-RAZORPAY_KEY_ID=rzp_test_...
-RAZORPAY_KEY_SECRET=...
-RAZORPAY_WEBHOOK_SECRET=...
-MERCHANTOS_HASH_SALT=...
-MERCHANTOS_TEST_ACTIONS_ENABLED=false
-MERCHANTOS_ALLOW_MODEL_REFIT=false
-MERCHANTOS_DASHBOARD_PUBLIC_URL=http://localhost:8501
+```text
+https://your-tunnel.trycloudflare.com/api/razorpay/webhook
 ```
 
-Set `MERCHANTOS_TEST_ACTIONS_ENABLED=true` only when you intentionally want eligible Test Mode Payment Links to execute.
+Configure this URL inside Razorpay **Test Mode** webhook settings.
 
-## RiskNet behavior when the artifact is missing
+---
 
-v1.4.1 does **not** silently fit a new model in normal operation. If the locked artifact is missing while `MERCHANTOS_ALLOW_MODEL_REFIT=false`, MerchantOS remains available using its safe policy/reputation fallback and reports the missing artifact. Copy the finalized artifact from your previous working build.
+## Testing
 
-## Validation
-
-Run:
+Run tests:
 
 ```bash
 pytest -q
 ```
 
-The v1.4.1 package contains regression tests for the existing closed loop, no-label-leak safety, threshold alignment, Live Payment Journey, and Docker packaging.
+Final validated build:
 
-## Main workspaces
+```text
+37 tests passed
+```
 
-- **Overview** — business impact and current state.
-- **Live Payment Journey** — create and trace a genuine Test Mode payment end-to-end.
-- **Payments** — provider ingestion and payment activity.
-- **Risk & Trust** — RiskNet scoring and graph evidence.
-- **Payment Health** — PayGuard degradation and RCA.
-- **Digital Twin** — intervention simulation.
-- **Decisions & Actions** — Guardrails, approvals, Test Mode actions.
-- **Learning & Outcomes** — expected vs actual recovery.
-- **Audit & Safety** — hash-chain integrity and safety boundaries.
+Run the readiness check:
 
-## Buildathon positioning
+```bash
+python scripts/system_check.py
+```
 
-MerchantOS is primarily an **AI Revenue Recovery** product with integrated RiskNet safety. The live journey makes that story demonstrable in one payment: observe a real Test Mode failure, assess risk, simulate recovery options, guard the action, execute only a bounded provider action, verify recovery, and audit the entire lifetime.
+Expected output:
+
+```text
+RESULT: READY
+```
+
+---
+
+## Demo Flow
+
+```text
+Create Razorpay Test Mode payment
+            ↓
+Payment fails
+            ↓
+RiskNet evaluates risk
+            ↓
+PayGuard checks route health
+            ↓
+Digital Twin simulates recovery options
+            ↓
+Decision Agent selects strategy
+            ↓
+Guardrails evaluate safety
+            ↓
+Safe Simulation
+      OR
+Bounded Test Mode Action
+            ↓
+Payment Link
+            ↓
+Customer pays
+            ↓
+Razorpay verifies result
+            ↓
+VERIFIED_RECOVERED
+            ↓
+Learning & Outcomes
+            ↓
+Audit & Safety
+```
+
+---
+
+## What Makes MerchantOS AI Different?
+
+MerchantOS AI is **not simply an LLM connected to a payment API**.
+
+It combines:
+
+* Real Razorpay Test Mode payment evidence
+* RiskNet risk intelligence
+* PayGuard payment-route health
+* Digital Twin simulation
+* Agentic decision-making
+* Deterministic Guardrails
+* Human approval
+* Bounded provider execution
+* Provider-side verification
+* Outcome learning
+* Auditability
+
+The goal is not simply to automate more actions.
+
+The goal is to automate the **right action safely**.
+
+---
+
+## Current Scope
+
+MerchantOS AI is intentionally restricted to:
+
+```text
+✓ Razorpay Test Mode Payment Link
+
+✗ Razorpay Live Mode Execution
+```
+
+The following remain simulated recovery recommendations:
+
+```text
+WAIT
+
+RETRY
+
+ALTERNATE PAYMENT METHOD
+```
+
+This is an intentional safety design.
+
+---
+
+## Buildathon Use Case
+
+### AI Revenue Recovery
+
+MerchantOS AI demonstrates how AI agents can safely participate in merchant financial operations while preserving:
+
+* AI reasoning
+* Deterministic controls
+* Human oversight
+* Provider verification
+* Auditability
+* Business outcome measurement
+
+---
+
+## Demo Video
+
+Add your final YouTube link here:
+
+
+Video Demo:
+(https://drive.google.com/file/d/12cC9pwKAzqnRRitzVF5WjA7MTN9PRW6F/view))
+
+
+---
+
+## Author
+
+### Gokul Karthic
+
+GitHub:
+[https://github.com/Gokul-Karthic](https://github.com/Gokul-Karthic)
+
+Project Repository:
+[https://github.com/Gokul-Karthic/MerchantOs-AI-Razorpay-Buildathon-](https://github.com/Gokul-Karthic/MerchantOs-AI-Razorpay-Buildathon-)
+
+---
+
